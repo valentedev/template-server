@@ -6,7 +6,7 @@
   </div>
   <pre><code>{{.Author}}</code></pre>
   <div class="metadata">
-    <time>created at {{humanDate .Created}}</time>
+    <time>created at {{ .Created | humanDate}}</time>
   </div>
 </div>
 {{end}} {{ end }}

@@ -2,7 +2,7 @@ package main
 
 import "net/http"
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 
 	mux := http.NewServeMux()
 
@@ -13,6 +13,5 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("/book/view", app.bookView)
 	mux.HandleFunc("/book/create", app.bookCreate)
 
-	return mux
-
+	return app.logRequest(secureHeaders(mux))
 }
