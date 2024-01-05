@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/justinas/alice"
+)
 
 func (app *application) routes() http.Handler {
 
@@ -13,5 +17,9 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/book/view", app.bookView)
 	mux.HandleFunc("/book/create", app.bookCreate)
 
-	return app.logRequest(secureHeaders(mux))
+	//return app.recoverPanic(app.logRequest(secureHeaders(mux)))
+
+	stdMiddleWare := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+
+	return stdMiddleWare.Then(mux)
 }

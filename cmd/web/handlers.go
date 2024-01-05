@@ -18,6 +18,8 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// panic("oops! something went wrong")
+
 	books, err := app.books.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
