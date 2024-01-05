@@ -1,0 +1,12 @@
+{{ define "title" }}Book #{{ end }} {{ define "main" }} {{ with .Book }}
+<div class="snippet">
+  <div class="metadata">
+    <strong>{{.Title}}</strong>
+    <span>#{{.ID}}</span>
+  </div>
+  <pre><code>{{.Author}}</code></pre>
+  <div class="metadata">
+    <time>created at {{humanDate .Created}}</time>
+  </div>
+</div>
+{{end}} {{ end }}
