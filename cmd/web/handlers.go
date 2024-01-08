@@ -5,18 +5,22 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/valentedev/template-server/internal/models"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
+	// Httprouter matches the "/" path exactly so we dont need below checking
 	// Return 404 in case "/" does not refind a handler
-	if r.URL.Path != "/" {
-		//http.NotFound(w, r)
-		app.notFound(w)
-		return
-	}
+	// if r.URL.Path != "/" {
+	// 	//http.NotFound(w, r)
+	// 	app.notFound(w)
+	// 	return
+	// }
 
 	// panic("oops! something went wrong")
 
@@ -64,8 +68,11 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) bookView(w http.ResponseWriter, r *http.Request) {
 
+	params := httprouter.ParamsFromContext(r.Context())
+
 	// Will convert the parameter "id" which is a String in to Int
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	//id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
 		//http.NotFound(w, r)
 		app.notFound(w)
@@ -95,6 +102,11 @@ func (app *application) bookView(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte("Display a specific book..."))
 }
 
+func (app *application) bookCreateForm(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+	app.render(w, r, http.StatusOK, "create.html", data)
+}
+
 func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 	// if r.Method != "POST" {
 	// 	w.Header().Set("Allow", "POST")
@@ -103,23 +115,53 @@ func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	// 	return
 	// }
-	if r.Method != http.MethodPost {
-		w.Header().Set("Allow", "POST")
-		//http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		app.clientError(w, http.StatusMethodNotAllowed)
+	// if r.Method != http.MethodPost {
+	// 	w.Header().Set("Allow", "POST")
+	// 	//http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	// 	app.clientError(w, http.StatusMethodNotAllowed)
+	// 	return
+	// }
+
+	// title := "O snail"
+	// content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
+	//expires := "4"
+
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n– Kobayashi Issa"
-	//expires := "4"
+	title := r.PostForm.Get("title")
+	author := r.PostForm.Get("author")
 
-	id, err := app.books.Insert(title, content)
+	fieldErrors := make(map[string]string)
+
+	if strings.TrimSpace(title) == "" {
+		fieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldErrors["title"] = "This field cannot be more than 100 characters long"
+	}
+
+	if strings.TrimSpace(author) == "" {
+		fieldErrors["autho"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldErrors["author"] = "This field cannot be more than 100 characters long"
+	}
+
+	if len(fieldErrors) > 0 {
+		fmt.Fprint(w, fieldErrors)
+		return
+	}
+
+	id, err := app.books.Insert(title, author)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("book/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/book/view/%d", id), http.StatusSeeOther)
 	//w.Write([]byte("Create a new book..."))
 }

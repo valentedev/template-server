@@ -53,7 +53,7 @@ func (m *BookModel) Get(id int) (Book, error) {
 
 func (m *BookModel) Latest() ([]Book, error) {
 	query := `
-		SELECT title, author, id FROM books ORDER BY id DESC LIMIT 10;
+		SELECT title, author, id FROM books ORDER BY id DESC LIMIT 5;
 	`
 
 	rows, err := m.DB.Query(query)
