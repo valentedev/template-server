@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/valentedev/template-server/internal/models"
+	"github.com/valentedev/template-server/internal/validator"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -61,9 +60,9 @@ func (app *application) bookCreateForm(w http.ResponseWriter, r *http.Request) {
 }
 
 type bookCreateForm struct {
-	Title       string
-	Author      string
-	FieldErrors map[string]string
+	Title  string
+	Author string
+	validator.Validator
 }
 
 func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
@@ -76,28 +75,20 @@ func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := bookCreateForm{
-		Title:       r.PostForm.Get("title"),
-		Author:      r.PostForm.Get("author"),
-		FieldErrors: map[string]string{},
+		Title:  r.PostForm.Get("title"),
+		Author: r.PostForm.Get("author"),
 	}
 
-	if strings.TrimSpace(form.Title) == "" {
-		form.FieldErrors["title"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(form.Title) > 100 {
-		form.FieldErrors["title"] = "This field cannot be more than 100 characters long"
-	}
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
 
-	if strings.TrimSpace(form.Author) == "" {
-		form.FieldErrors["author"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(form.Title) > 100 {
-		form.FieldErrors["author"] = "This field cannot be more than 100 characters long"
-	}
+	form.CheckField(validator.NotBlank(form.Author), "author", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Author, 100), "author", "This field cannot be more than 100 characters long")
 
-	if len(form.FieldErrors) > 0 {
+	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, r, http.StatusUnprocessableEntity, "create.html", data)
-		return
 	}
 
 	id, err := app.books.Insert(form.Title, form.Author)
