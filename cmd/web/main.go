@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-playground/form/v4"
 	_ "github.com/lib/pq"
 
 	"github.com/valentedev/template-server/internal/models"
@@ -18,6 +19,7 @@ type application struct {
 	logger        *slog.Logger
 	books         *models.BookModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 func main() {
@@ -46,11 +48,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize Form Decoder
+	formDecoder := form.NewDecoder()
+
 	// Instance of application struct
 	app := &application{
 		logger:        logger,
 		books:         &models.BookModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	log.Printf("starting server on %s", *addr)

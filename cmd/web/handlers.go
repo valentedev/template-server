@@ -60,23 +60,20 @@ func (app *application) bookCreateForm(w http.ResponseWriter, r *http.Request) {
 }
 
 type bookCreateForm struct {
-	Title  string
-	Author string
-	validator.Validator
+	Title               string `form:"title"`
+	Author              string `form:"author"`
+	validator.Validator `form:"-"`
 }
 
 func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 4096)
 
-	err := r.ParseForm()
+	var form bookCreateForm
+
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
-	}
-
-	form := bookCreateForm{
-		Title:  r.PostForm.Get("title"),
-		Author: r.PostForm.Get("author"),
 	}
 
 	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
