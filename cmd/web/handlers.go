@@ -104,7 +104,14 @@ func (app *application) bookView(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) bookCreateForm(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
+	data.Form = bookCreateForm{}
 	app.render(w, r, http.StatusOK, "create.html", data)
+}
+
+type bookCreateForm struct {
+	Title       string
+	Author      string
+	FieldErrors map[string]string
 }
 
 func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
@@ -134,29 +141,37 @@ func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	author := r.PostForm.Get("author")
+	// title := r.PostForm.Get("title")
+	// author := r.PostForm.Get("author")
 
-	fieldErrors := make(map[string]string)
+	// fieldErrors := make(map[string]string)
 
-	if strings.TrimSpace(title) == "" {
-		fieldErrors["title"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		fieldErrors["title"] = "This field cannot be more than 100 characters long"
+	form := bookCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Author:      r.PostForm.Get("author"),
+		FieldErrors: map[string]string{},
 	}
 
-	if strings.TrimSpace(author) == "" {
-		fieldErrors["autho"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		fieldErrors["author"] = "This field cannot be more than 100 characters long"
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "This field cannot be more than 100 characters long"
 	}
 
-	if len(fieldErrors) > 0 {
-		fmt.Fprint(w, fieldErrors)
+	if strings.TrimSpace(form.Author) == "" {
+		form.FieldErrors["author"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["author"] = "This field cannot be more than 100 characters long"
+	}
+
+	if len(form.FieldErrors) > 0 {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "create.html", data)
 		return
 	}
 
-	id, err := app.books.Insert(title, author)
+	id, err := app.books.Insert(form.Title, form.Author)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

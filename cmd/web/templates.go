@@ -12,6 +12,7 @@ type templateData struct {
 	CurrentYear int
 	Book        models.Book
 	Books       []models.Book
+	Form        any
 }
 
 func humanDate(t time.Time) string {
