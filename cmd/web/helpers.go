@@ -44,11 +44,6 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	w.WriteHeader(status)
 
 	buf.WriteTo(w)
-
-	// err := ts.ExecuteTemplate(w, "base", data)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// }
 }
 
 func (app *application) newTemplateData(r *http.Request) templateData {
