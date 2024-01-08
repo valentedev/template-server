@@ -46,8 +46,11 @@ func (app *application) bookView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//flash := app.sessionManager.PopString(r.Context(), "flash")
+
 	data := app.newTemplateData(r)
 	data.Book = book
+	//data.Flash = flash
 
 	app.render(w, r, http.StatusOK, "view.html", data)
 
@@ -93,6 +96,8 @@ func (app *application) bookCreate(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Book successfully created!")
 
 	http.Redirect(w, r, fmt.Sprintf("/book/view/%d", id), http.StatusSeeOther)
 }

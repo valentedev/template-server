@@ -23,3 +23,10 @@ INSERT INTO books (title, author) VALUES ('The Lost Symbol', 'Dan Brown');
 
 INSERT INTO books (title, author) VALUES ('Les Miserables', 'Victor Hugo'); 
 
+CREATE TABLE sessions (
+   token VARCHAR(43) PRIMARY KEY,
+   data bytea NOT NULL,
+   expiry timestamp(6) NOT NULL
+)
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);

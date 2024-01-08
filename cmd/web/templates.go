@@ -13,6 +13,7 @@ type templateData struct {
 	Book        models.Book
 	Books       []models.Book
 	Form        any
+	Flash       string
 }
 
 func humanDate(t time.Time) string {

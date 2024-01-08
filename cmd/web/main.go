@@ -8,7 +8,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	_ "github.com/lib/pq"
 
@@ -16,10 +19,11 @@ import (
 )
 
 type application struct {
-	logger        *slog.Logger
-	books         *models.BookModel
-	templateCache map[string]*template.Template
-	formDecoder   *form.Decoder
+	logger         *slog.Logger
+	books          *models.BookModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -51,12 +55,18 @@ func main() {
 	// Initialize Form Decoder
 	formDecoder := form.NewDecoder()
 
+	// Initialize Session Manager
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	// Instance of application struct
 	app := &application{
-		logger:        logger,
-		books:         &models.BookModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder,
+		logger:         logger,
+		books:          &models.BookModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	log.Printf("starting server on %s", *addr)

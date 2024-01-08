@@ -9,7 +9,6 @@ import (
 
 func (app *application) routes() http.Handler {
 
-	// mux := http.NewServeMux()
 	router := httprouter.New()
 
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -17,13 +16,14 @@ func (app *application) routes() http.Handler {
 	})
 
 	fs := http.FileServer(http.Dir("./ui/static/"))
-	//mux.Handle("/static/", http.StripPrefix("/static", fs))
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fs))
 
-	router.HandlerFunc(http.MethodGet, "/", app.home)
-	router.HandlerFunc(http.MethodGet, "/book/view/:id", app.bookView)
-	router.HandlerFunc(http.MethodGet, "/book/create", app.bookCreateForm)
-	router.HandlerFunc(http.MethodPost, "/book/create", app.bookCreate)
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
+	router.Handler(http.MethodGet, "/book/view/:id", dynamic.ThenFunc(app.bookView))
+	router.Handler(http.MethodGet, "/book/create", dynamic.ThenFunc(app.bookCreateForm))
+	router.Handler(http.MethodPost, "/book/create", dynamic.ThenFunc(app.bookCreate))
 
 	//return app.recoverPanic(app.logRequest(secureHeaders(mux)))
 
