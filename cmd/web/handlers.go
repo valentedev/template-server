@@ -220,7 +220,7 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.sessionManager.Remove(r.Context(), "autheticatedUserID")
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
 
 	app.sessionManager.Put(r.Context(), "flash", "You have been logged out successfully")
 
