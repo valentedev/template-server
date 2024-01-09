@@ -20,10 +20,18 @@ func (app *application) routes() http.Handler {
 
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
 
+	// Book Routes
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.home))
 	router.Handler(http.MethodGet, "/book/view/:id", dynamic.ThenFunc(app.bookView))
 	router.Handler(http.MethodGet, "/book/create", dynamic.ThenFunc(app.bookCreateForm))
 	router.Handler(http.MethodPost, "/book/create", dynamic.ThenFunc(app.bookCreate))
+
+	// User Routes
+	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.userSignup))
+	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.userSignupPost))
+	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.userLogin))
+	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
+	router.Handler(http.MethodPost, "/user/logout", dynamic.ThenFunc(app.userLogoutPost))
 
 	//return app.recoverPanic(app.logRequest(secureHeaders(mux)))
 
