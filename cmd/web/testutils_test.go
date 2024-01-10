@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"regexp"
 	"testing"
 	"time"
 
@@ -15,6 +17,18 @@ import (
 
 	"github.com/valentedev/template-server/internal/models/mocks"
 )
+
+func extractCSRFToken(t *testing.T, body string) string {
+	//TODO: original pattern on page 386 does not work because it does not have trailing slash...
+	pattern := `<input type="hidden" name="csrf_token" value="([^"]*)" />`
+	csrfTokenRX := regexp.MustCompile(pattern)
+	matches := csrfTokenRX.FindStringSubmatch(body)
+	if len(matches) < 2 {
+		t.Fatal("no csrf token found in body")
+	}
+
+	return html.UnescapeString(string(matches[1]))
+}
 
 func newTestApplication(t *testing.T) *application {
 
