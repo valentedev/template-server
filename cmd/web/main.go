@@ -20,8 +20,8 @@ import (
 
 type application struct {
 	logger         *slog.Logger
-	books          *models.BookModel
-	users          *models.UserModel
+	books          models.BookModelInterface
+	users          models.UserModelInterface
 	templateCache  map[string]*template.Template
 	formDecoder    *form.Decoder
 	sessionManager *scs.SessionManager

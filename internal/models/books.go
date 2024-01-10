@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+type BookModelInterface interface {
+	Insert(title, author string) (int, error)
+	Get(id int) (Book, error)
+	Latest() ([]Book, error)
+}
+
 type Book struct {
 	ID      int
 	Created time.Time
